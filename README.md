@@ -1,16 +1,16 @@
 # Mendix Docker Buildpack in Azure
 An example of how to use the Mendix Docker Buildpack with Azure Kubernetes Service
 
-Disclaimer: This is not an official Mendix product or documentation.
+Disclaimer: This is not an official [Mendix](https://www.mendix.com/) product or documentation.
 For more info regarding the docker buildpack, please visit https://github.com/mendix/docker-mendix-buildpack
 
 ## Prerequisites
 
-* An Azure Subscription
-* An Azure DevOps Project
-* A public or private AKS cluster
-* An Azure Container Registry
-* An Azure FrontDoor or Traffic Manager pointing at the AKS cluster
+* [An Azure Subscription](https://azure.microsoft.com/en-gb/free/)
+* [An Azure DevOps Project](https://dev.azure.com)
+* [A public or private AKS cluster](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
+* [An Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-intro)
+* An [Azure FrontDoor](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-overview) or [Traffic Manager](https://docs.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview) pointing at the AKS cluster
 
 ## How-To
 
