@@ -1,0 +1,87 @@
+parameters:
+- name: CONTAINER_REGISTRY
+  type: string
+  default: ''
+- name: REPO_NAME
+  type: string
+  default: ''
+- name: preBuildTasks
+  type: stepList
+  default: []
+
+stages:
+- stage: buildAndPushContainerImage
+  displayName: Build and Push Container Image
+  condition: succeeded()
+  jobs:
+  - job: validateBuildConfig
+    displayName: Validate Build configuration
+    steps:
+    - bash: |
+        if [ -z "$CONTAINER_REGISTRY" ]; then
+          echo "##vso[task.logissue type=error;]Missing template parameter \"CONTAINER_REGISTRY\""
+          echo "##vso[task.complete result=Failed;]"
+        fi
+        if [ -z "$REPO_NAME" ]; then
+          echo "##vso[task.logissue type=error;]Missing template parameter \"REPO_NAME\""
+          echo "##vso[task.complete result=Failed;]"
+        fi
+      name: validateBuildEnvironmentConfig
+      displayName: Validate Build environment configuration
+      env:
+        CONTAINER_REGISTRY: '${{ parameters.CONTAINER_REGISTRY }}'
+        REPO_NAME: '${{ parameters.REPO_NAME }}'        
+  - job: buildAndPushImage
+    displayName: Build and Push the Docker image
+    dependsOn: validateBuildConfig
+    condition: succeeded('validateBuildConfig')
+    steps:
+    - ${{ each step in parameters.preBuildTasks }}:
+      - ${{ each pair in step }}:
+          ${{ pair.key }}: ${{ pair.value }}
+    - bash: |
+        if [ -d docker-mendix-buildpack ]
+        then
+            rm -rf docker-mendix-buildpack
+        fi
+        git clone https://github.com/mendix/docker-mendix-buildpack.git
+        mv docker-mendix-buildpack/* .
+      workingDirectory: $(Build.Repository.LocalPath)/MendixApp
+      displayName: "Cloning Mendix build pack"
+    - task: ExtractFiles@1
+      displayName: Extract MDA
+      inputs:
+        archiveFilePatterns: '$(Build.Repository.LocalPath)/MendixApp/*.mda' 
+        destinationFolder: '$(Build.Repository.LocalPath)/MendixApp/project'
+        cleanDestinationFolder: true 
+    - task: Docker@2
+      displayName: Login to ACR
+      inputs:
+        command: login
+        containerRegistry: '${{ parameters.CONTAINER_REGISTRY }}'
+    - task: Docker@2
+      displayName: Build Image
+      inputs:
+        command: build
+        Dockerfile: '$(Build.Repository.LocalPath)/MendixApp/Dockerfile'
+        repository: '${{ parameters.REPO_NAME }}'
+        tags: |
+          $(Build.BuildId)
+          latest
+        buildContext: '$(Build.Repository.LocalPath)/MendixApp'
+        addPipelineData: true
+    - task: Docker@2
+      displayName: Push Image
+      inputs:
+        command: push
+        containerRegistry: '${{ parameters.CONTAINER_REGISTRY }}'
+        repository: '${{ parameters.REPO_NAME }}'
+        tags: |
+          $(Build.BuildId)
+          latest
+        addPipelineData: true
+    - task: Docker@2
+      displayName: Logout of ACR
+      inputs:
+        command: logout
+        containerRegistry: '${{ parameters.CONTAINER_REGISTRY }}'

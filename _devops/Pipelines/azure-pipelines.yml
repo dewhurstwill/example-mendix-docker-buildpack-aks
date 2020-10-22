@@ -1,0 +1,46 @@
+name: '$(Build.SourceBranchName)'
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - MendixApp
+
+variables:
+# Variable group
+- group: 'prod-vars'
+# Should contain:
+#
+# AGENT_POOL             - Name of self hosted agent pool or leave blank if using
+#                          Microsoft Hosted. To use microsoft hosted, update the pool 
+#                          to be vmImage: 'ubuntu-latest' instead of name: '$(AGENT_POOL)'
+#
+# CONTAINER_REGISTRY     - Full name of azure container registry, this should also be the
+#                          name of the service connection
+#
+# KUBERNETES_ENVIRONMENT - Name of the kubernetes service connection
+#
+# KUBERNETES_NAMESPACE   - Name of the kubernetes namespace to deploy to
+#
+# REPO_NAME              - Name of the container registry repository to use
+#
+# ADO_ENVIRONMENT        - Name of the kubernetes pipeline environment in ADO
+
+pool:
+  name: '$(AGENT_POOL)'
+
+stages:
+- template: 'templates/dockerBuild.tpl.stage.yml'
+  parameters:
+    CONTAINER_REGISTRY: '$(CONTAINER_REGISTRY)'
+    REPO_NAME: '$(REPO_NAME)'
+- template: 'templates/deploy.tpl.stage.yml'
+  parameters:
+    CONTAINER_REGISTRY: '$(CONTAINER_REGISTRY)'
+    KUBERNETES_ENVIRONMENT: '$(KUBERNETES_ENVIRONMENT)'
+    KUBERNETES_NAMESPACE: '$(KUBERNETES_NAMESPACE)'
+    REPO_NAME: '$(REPO_NAME)'
+    ENVIRONMENT: '$(ADO_ENVIRONMENT)'

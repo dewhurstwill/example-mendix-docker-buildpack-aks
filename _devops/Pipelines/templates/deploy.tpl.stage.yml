@@ -1,0 +1,75 @@
+parameters:
+- name: CONTAINER_REGISTRY
+  type: string
+  default: ''
+- name: REPO_NAME
+  type: string
+  default: ''
+- name: KUBERNETES_NAMESPACE
+  type: string
+  default: ''
+- name: KUBERNETES_ENVIRONMENT
+  type: string
+  default: ''
+- name: ENVIRONMENT
+  type: string
+  default: ''
+
+stages:
+- stage: validateParams
+  displayName: Validate the Release Parameters
+  jobs:
+  - job: validateReleaseParameters
+    displayName: Validate Release Parameters
+    steps:
+    - bash: |
+        #!/usr/bin/env bash
+        if [ -z $CONTAINER_REGISTRY ]; then
+          echo "##vso[task.logissue type=error;]Missing template parameter \"CONTAINER_REGISTRY\""
+          echo "##vso[task.complete result=Failed;]"
+        fi
+        if [ -z $REPO_NAME ]; then
+          echo "##vso[task.logissue type=error;]Missing template parameter \"REPO_NAME\""
+          echo "##vso[task.complete result=Failed;]"
+        fi
+        if [ -z $KUBERNETES_NAMESPACE ]; then
+          echo "##vso[task.logissue type=error;]Missing template parameter \"KUBERNETES_NAMESPACE\""
+          echo "##vso[task.complete result=Failed;]"
+        fi
+      name: validateReleaseParameters
+      displayName: Validate Release Parameters
+      env:
+        CONTAINER_REGISTRY: '${{ parameters.CONTAINER_REGISTRY }}'
+        REPO_NAME: '${{ parameters.REPO_NAME }}'
+        KUBERNETES_NAMESPACE: '${{ parameters.KUBERNETES_NAMESPACE }}'
+- stage: releaseToProduction
+  dependsOn: validateParams
+  displayName: Release to Production Environment
+  jobs:
+  - deployment: prodDeploy
+    displayName: Deploy to Prod Environment
+    environment: '${{ parameters.ENVIRONMENT }}'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - bash: |
+              #!/usr/bin/env bash
+              yq write --inplace deployment.yaml 'metadata.namespace' "${KUBERNETES_NAMESPACE}"
+              yq write --inplace deployment.yaml 'spec.template.spec.containers[0].image' "${CONTAINER_REGISTRY}/${REPO_NAME}:${BUILD_ID}"
+            name: updateDeployment
+            displayName: Update Deployment
+            workingDirectory: '$(Build.Repository.LocalPath)/_devops/Kubernetes/manifests/'
+            env:
+              CONTAINER_REGISTRY: '$(parameters.CONTAINER_REGISTRY)'
+              REPO_NAME: '$(parameters.REPO_NAME)'
+              KUBERNETES_NAMESPACE: '$(parameters.KUBERNETES_NAMESPACE)'
+              BUILD_ID: '$(Build.BuildId)'
+          - task: KubernetesManifest@0
+            name:
+            displayName: Apply Kube Manifests
+            inputs:
+              action: deploy
+              kubernetesServiceConnection: "${{ parameters.KUBERNETES_ENVIRONMENT }}--${{ parameters.KUBERNETES_NAMESPACE }}"
+              namespace: "${{ parameters.KUBERNETES_NAMESPACE }}"
+              manifests: "$(Build.Repository.LocalPath)/_devops/Kubernetes/manifests/deployment.yaml"

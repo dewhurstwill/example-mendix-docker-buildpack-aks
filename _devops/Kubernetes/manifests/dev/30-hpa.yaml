@@ -1,0 +1,16 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  labels:
+    app: YourApp
+    parentApp: mendix
+  name: mendix-app-hpa
+  namespace: mendix-app-dev
+spec:
+  maxReplicas: 3
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mendix-app
+  targetCPUUtilizationPercentage: 70

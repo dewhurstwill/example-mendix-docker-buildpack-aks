@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mendix-app
+  namespace: mendix-app-accp
+  labels:
+    app: YourApp
+    parentApp: mendix
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: YourApp
+      parentApp: mendix
+  template:
+    metadata:
+      labels:
+        app: YourApp
+        parentApp: mendix
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: mendix-app
+        image: YOUR_ACR.azurecr.io/YOUR_ACR_MENDIX_REPO:latest
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: mendix-app-config
+          # Uncomment if you need to use secrets
+          # This should be used for database connection strings, password etc
+          #- secretRef:
+          #    name: mendix-app-secrets
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
