@@ -13,13 +13,14 @@ For more info regarding the docker buildpack, please visit https://github.com/me
 * An [Azure FrontDoor](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-overview) or [Traffic Manager](https://docs.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview) pointing at the AKS cluster
 
 ## How-To
-
-1. Fork this repo to your Azure DevOps Project
-2. Upload your Mendix MDA file to the MendixApp folder
-3. Configure a service connection for ACR (Azure Container Registry)
-4. Update the manifests to suit your deployment
-5. Apply all the kubernetes manifests except the deployment (this will be done by the pipeline)
-6. Configure a service connection for each kubernetes namespace
-7. Configure a Pipeline Variable Group (Library) as outlined in _devops/Pipelines/azure-pipelines.yml
-8. Import the pipeline (_devops/Pipelines/azure-pipelines.yml) 
-9. Run the pipeline
+| Steps 📝 | 🛠 |
+| - | - |
+| Step 1. | Fork this repo to your Azure DevOps Project |
+| Step 2. | Upload your Mendix MDA file to the MendixApp folder |
+| Step 3. | Configure a service connection for ACR (Azure Container Registry) |
+| Step 4. | Update the manifests to suit your deployment |
+| Step 5. | Apply all the kubernetes manifests except the deployment (this will be done by the pipeline) |
+| Step 6. | Configure a service connection for each kubernetes namespace |
+| Step 7. | Configure a Pipeline Variable Group (Library) as outlined in _devops/Pipelines/azure-pipelines.yml |
+| Step 8. | Import the pipeline (_devops/Pipelines/azure-pipelines.yml) |
+| Step 9. | Run the pipeline |
