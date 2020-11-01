@@ -1,5 +1,5 @@
 # Mendix Docker Buildpack in Azure
-An example of how to use the Mendix Docker Buildpack with Azure Kubernetes Service
+An example of how to use the [Mendix Docker Buildpack](https://github.com/mendix/docker-mendix-buildpack) with Azure Kubernetes Service
 
 Disclaimer: This is not an official [Mendix](https://www.mendix.com/) product or documentation.
 For more info regarding the docker buildpack, please visit https://github.com/mendix/docker-mendix-buildpack
